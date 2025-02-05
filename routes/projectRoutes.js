@@ -4,6 +4,7 @@ const router = express.Router();
 const { create, sendEmail, download, fetch} = require("../controllers/projectsController");
 const path = require("path");
 const fs = require("fs");
+const upload = require("../middlewares/uploads")
 
 // Ensure uploads folder exists
 const uploadDir = path.join(__dirname, "../uploads");
@@ -29,8 +30,6 @@ const fileFilter = (req, file, cb) => {
     cb(new Error("Invalid file type"), false);
   }
 };
-
-const upload = multer({ storage, fileFilter });
 
 // Ensure `upload.single("image")` comes first
 router.post("/create", upload.single("image"), create);

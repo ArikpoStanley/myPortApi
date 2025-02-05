@@ -25,6 +25,7 @@ app.use(
     max: 60,
   })
 );
+
 // app.use(helmet());
 app.use(cors());
 // app.use(xss());
@@ -32,7 +33,7 @@ app.use(cors());
 
 app.use(express.json());
 
-app.use(express.static('./public'));
+app.use(express.static('./uploads'));
 // app.use(fileUpload());
 
 app.use('/api/v1/project', projectRoutes);

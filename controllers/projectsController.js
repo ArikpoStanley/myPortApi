@@ -3,6 +3,7 @@ const { StatusCodes } = require("http-status-codes");
 const nodemailer = require("nodemailer");
 const path = require("path");
 const fs = require("fs");
+const { put } = require("@vercel/blob");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -14,19 +15,23 @@ const transporter = nodemailer.createTransport({
 
 const create = async (req, res) => {
   try {
-    console.log("Raw Request Body:", req.body);
-    console.log("Uploaded File:", req.file);
-
     const { url, title, githubLink, status } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null; // Ensure correct image path
-
-    console.log("Received Data:", { url, title, githubLink, status, image });
-
-    if (!url || !title || !githubLink || !status) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!req.file) {
+      return res.status(400).json({ message: "Image file is required" });
     }
 
-    const project = await Projects.create({ image, url, title, githubLink, status });
+    // Upload image to Vercel Blob
+    const blob = await put(req.file.originalname, req.file.buffer, {
+      access: "public", // Make image publicly accessible
+    });
+
+    const project = await Projects.create({
+      image: blob.url, // Save the image URL in the database
+      url,
+      title,
+      githubLink,
+      status,
+    });
 
     res.status(201).json({
       message: "Project added successfully",
@@ -55,7 +60,7 @@ const sendEmail = async (req, res) => {
 
 const download = async (req, res) => {
   try {
-    const filePath = path.join(__dirname, "..", "public", "My_CV.docx"); // Adjust path if needed
+    const filePath = path.join(__dirname, "..", "public", "My_CV.docx");
     console.log("File Path:", filePath);
 
     // Check if the file exists before sending
